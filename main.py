@@ -1,4 +1,5 @@
 import copy
+import time
 # make a DFS algorithm for the S Puzzle
 # to do so, you will need to start out with the smallest index value and go to the greatest
 # prioritize left, down, right and up in that order : make sure these are functions
@@ -10,9 +11,9 @@ goal = (
     (7, 8, 9)
     )
 start = [
-    [7, 8, 9], 
-    [5, 2, 1], 
-    [3, 4, 6]
+    [9, 8, 7], 
+    [6, 4, 5], 
+    [1, 2, 3]
     ]
 
 
@@ -39,15 +40,13 @@ class DFS:
 
     def solve(self,currentNum,currentState,start,originalstate,isFound):
 
-        truelist = list()
-
         if len(self.closed) == 0:
             currentState = self.opened.pop(0) # the target state that you wish to reach
             self.closed = originalstate
             self.closed.append(currentState)
             movelist = self.categorize(currentState[0],currentState[1])
             if self.numericalDict[currentNum] == currentState:
-                a = 5
+                isFound[0] = True
         else:
             movelist = self.categorize(currentState[0],currentState[1])
     
@@ -76,39 +75,7 @@ class DFS:
                     if forcount == len(movelist):
                         movelist = list()
                 else:
-                    movelist = list()
-
-
-
-        #     leftlist = self.categorize(currentState[0],currentState[1])
-        #     for left in leftlist:
-        #         if left not in self.closed:
-        #             truelist.append(left)
-        #     self.opened = truelist + self.opened
-        #     truelist = list()
-
-        # targetspot = self.opened.pop(0)
-        # leftlist = self.categorize(targetspot[0],targetspot[1])
-        # for left in leftlist:
-        #     if left not in self.closed:
-        #         truelist.append(left)
-        # self.opened = truelist + self.opened
-
-        # self.swap(currentState,targetspot,start)
-        # self.closed.append(targetspot)
-        
-        # if targetspot != self.numericalDict[currentNum]:
-        #     while len(leftlist[0]) > 0:
-        #         if leftlist[0] in self.closed:
-        #             if len(leftlist)==1:
-        #                 #if start[currentState[0]][currentState[1]] != currentNum:
-        #                 self.swap(targetspot,currentState,start)
-        #                 return
-        #             leftlist.pop(0)
-        #         else:
-        #             self.solve(currentNum,targetspot,start,originalstate)
-        #            # self.swap(targetspot,currentState,start)
-                    
+                    movelist = list()                    
             
 
     def swap(self,orgstate, newstate,start):
@@ -121,6 +88,8 @@ class DFS:
     def iterate(self):
         permlist = list()
         counting = 1
+        starttime = time.time()
+        print("starting ...")
         while len(self.order)> 0:
 
             target = self.order.pop(0)
@@ -147,7 +116,11 @@ class DFS:
             counting+=1
             for i in range(1,counting):
                 permlist.append(self.numericalDict[i])
-        
+        endtime = time.time()
+        print("ended with time : " + str((endtime -starttime)))
+
+
+
     def categorize(self,rowind,colind):
         templist = list()
         if rowind == 0:
@@ -203,7 +176,81 @@ class DFS:
         
         return templist
 
+class IterativeDeepening:
 
+    def __init__(self, start, goal):
+        self.start = start
+        self.goal = goal
+        self.order = []
+        self.closed = []
+        self.opened = []
+        self.numericalDict = dict()
+        count = 1
+        rowc = 0
+        for row in goal:
+            colc = 0
+            for placement in row:
+                self.order.append(placement)
+                self.numericalDict[count] = [rowc,colc]
+                colc+=1
+                count+=1
+            rowc+=1
+
+
+    def categorize(self,rowind,colind):
+        templist = list()
+        if rowind == 0:
+
+            if colind == 0:
+                down = [rowind+1,colind]
+                right = [rowind,colind+1]
+                templist.extend([down,right])
+            elif colind == len(start)-1:
+                left = [rowind,colind-1]
+                down = [rowind+1,colind]
+                templist.extend([left,down])
+            else:
+                left = [rowind,colind-1]
+                down = [rowind+1,colind]
+                right = [rowind,colind+1]
+                templist.extend([left,down,right])
+
+        elif rowind == len(start)-1:
+
+            if colind == 0:
+                right = [rowind,colind+1]
+                up = [rowind-1,colind]
+                templist.extend([right,up])
+            elif colind == len(start)-1:
+                left = [rowind,colind-1]
+                up = [rowind-1,colind]
+                templist.extend([left,up])
+            else:
+                left = [rowind,colind-1]
+                right = [rowind,colind+1]
+                up = [rowind-1,colind]
+                templist.extend([left,right,up])
+
+        else:
+            
+            if colind == 0:
+               down = [rowind+1,colind]
+               right = [rowind,colind+1]
+               up = [rowind-1,colind]
+               templist.extend([down,right,up])
+            elif colind == len(start)-1:
+               left = [rowind,colind-1] 
+               down = [rowind+1,colind]
+               up = [rowind-1,colind]
+               templist.extend([left,down,up])
+            else:
+               left = [rowind,colind-1] 
+               down = [rowind+1,colind]
+               right = [rowind,colind+1]
+               up = [rowind-1,colind]
+               templist.extend([left,down,right,up])
+        
+        return templist
             
 
     
@@ -215,7 +262,6 @@ class DFS:
 #     print(integer)
 
 df = DFS(start,goal)
-
 df.iterate()
 
 #RecurseTest(integer=10)
