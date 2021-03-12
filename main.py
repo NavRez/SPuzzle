@@ -180,6 +180,7 @@ class IterativeDeepening:
 
     def __init__(self, start, goal):
         self.start = start
+        self.depth = 0
         self.goal = goal
         self.order = []
         self.closed = []
@@ -195,6 +196,98 @@ class IterativeDeepening:
                 colc+=1
                 count+=1
             rowc+=1
+
+    def swap(self,orgstate, newstate,start):
+        val1 = start[orgstate[0]][orgstate[1]]
+        val2 = start[newstate[0]][newstate[1]]
+        start[orgstate[0]][orgstate[1]] = val2
+        start[newstate[0]][newstate[1]] = val1
+
+    def solve(self,currentNum,currentState,start,originalstate,isFound,depthLimit):
+        if depthLimit >= 0:
+            depthLimit-=1
+            if len(self.closed) == 0:
+                currentState = self.opened.pop(0) # the target state that you wish to reach
+                self.closed = originalstate
+                self.closed.append(currentState)
+                movelist = self.categorize(currentState[0],currentState[1])
+                if self.numericalDict[currentNum] == currentState:
+                    isFound[0] = True
+            else:
+                movelist = self.categorize(currentState[0],currentState[1])
+        
+            while len(movelist) != 0:
+                forcount = 0
+                for move in movelist:
+                    if not isFound[0]:
+                        newstart = copy.deepcopy(start)
+                        if move in self.closed:
+                            forcount+=1
+                        else:
+                            self.swap(currentState,move,newstart)
+
+                            if self.numericalDict[currentNum] == move:
+                                isFound[0] = True
+                                self.start = newstart
+                                break
+                            else:
+                                while forcount > 0:
+                                    movelist.pop(0)
+                                    forcount-=1
+                                closed_node = movelist.pop(0)
+                                if closed_node not in self.closed:
+                                    self.closed.append(closed_node)
+                                self.solve(currentNum,closed_node,newstart,originalstate,isFound,depthLimit)
+                        if forcount == len(movelist):
+                            movelist = list()
+                    else:
+                        movelist = list()     
+
+
+    def iterate(self):
+        permlist = list()
+        counting = 1
+        starttime = time.time()
+        older = copy.deepcopy(self.order)
+        print("starting ...")
+        depth = self.depth
+        while len(self.order)> 0:
+
+            target = self.order.pop(0)
+
+            rowind = 0
+            colind = 0
+
+            found =False
+            for row in self.start:
+                for loc in row:
+                    if loc == target:
+                        rowind = self.start.index(row)
+                        colind = row.index(loc)
+                        found = True
+                        break
+                if found:
+                    break
+            found = [False]
+            self.opened.append([rowind,colind])
+            self.solve(target,[rowind,colind],self.start,permlist,found,depth)
+            self.opened = list()
+            self.closed = list()
+            permlist = list()
+            if found[0] == True:
+                counting+=1
+                for i in range(1,counting):
+                    permlist.append(self.numericalDict[i])
+                depth = 0
+                older = copy.deepcopy(self.order)
+            else:
+                self.order = copy.deepcopy(older)
+                depth+=1
+        endtime = time.time()
+        print("ended with time : " + str((endtime -starttime)))
+
+
+               
 
 
     def categorize(self,rowind,colind):
@@ -261,7 +354,7 @@ class IterativeDeepening:
 #         RecurseTest(integer-1)
 #     print(integer)
 
-df = DFS(start,goal)
+df = IterativeDeepening(start,goal)
 df.iterate()
 
 #RecurseTest(integer=10)
