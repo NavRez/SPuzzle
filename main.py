@@ -11,9 +11,9 @@ goal = (
     (7, 8, 9)
     )
 start = [
-    [9, 8, 7], 
-    [6, 4, 5], 
-    [1, 2, 3]
+    [5, 3, 9], 
+    [4, 2, 8], 
+    [6, 1, 7]
     ]
 
 
@@ -23,6 +23,7 @@ class DFS:
     def __init__(self, start, goal):
         self.start = start
         self.goal = goal
+        self.path = []
         self.order = []
         self.closed = []
         self.opened = []
@@ -42,6 +43,7 @@ class DFS:
 
         if len(self.closed) == 0:
             currentState = self.opened.pop(0) # the target state that you wish to reach
+            self.path.append(currentState)
             self.closed = originalstate
             self.closed.append(currentState)
             movelist = self.categorize(currentState[0],currentState[1])
@@ -59,6 +61,7 @@ class DFS:
                         forcount+=1
                     else:
                         self.swap(currentState,move,newstart)
+                        self.path.append(move)
 
                         if self.numericalDict[currentNum] == move:
                             isFound[0] = True
@@ -72,6 +75,8 @@ class DFS:
                             if closed_node not in self.closed:
                                 self.closed.append(closed_node)
                             self.solve(currentNum,closed_node,newstart,originalstate,isFound)
+                            if not isFound[0]:
+                                self.path.append(currentState)
                     if forcount == len(movelist):
                         movelist = list()
                 else:
@@ -89,7 +94,7 @@ class DFS:
         permlist = list()
         counting = 1
         starttime = time.time()
-        print("starting ...")
+        print("starting DFS...")
         while len(self.order)> 0:
 
             target = self.order.pop(0)
@@ -112,6 +117,7 @@ class DFS:
             self.solve(target,[rowind,colind],self.start,permlist,found)
             self.opened = list()
             self.closed = list()
+            self.path = list()
             permlist = list()
             counting+=1
             for i in range(1,counting):
@@ -182,6 +188,7 @@ class IterativeDeepening:
         self.start = start
         self.depth = 0
         self.goal = goal
+        self.path = []
         self.order = []
         self.closed = []
         self.opened = []
@@ -208,6 +215,7 @@ class IterativeDeepening:
             depthLimit-=1
             if len(self.closed) == 0:
                 currentState = self.opened.pop(0) # the target state that you wish to reach
+                self.path.append(currentState)
                 self.closed = originalstate
                 self.closed.append(currentState)
                 movelist = self.categorize(currentState[0],currentState[1])
@@ -225,6 +233,7 @@ class IterativeDeepening:
                             forcount+=1
                         else:
                             self.swap(currentState,move,newstart)
+                            self.path.append(move)
 
                             if self.numericalDict[currentNum] == move:
                                 isFound[0] = True
@@ -238,6 +247,8 @@ class IterativeDeepening:
                                 if closed_node not in self.closed:
                                     self.closed.append(closed_node)
                                 self.solve(currentNum,closed_node,newstart,originalstate,isFound,depthLimit)
+                                if not isFound[0]:
+                                    self.path.append(currentState)
                         if forcount == len(movelist):
                             movelist = list()
                     else:
@@ -249,7 +260,7 @@ class IterativeDeepening:
         counting = 1
         starttime = time.time()
         older = copy.deepcopy(self.order)
-        print("starting ...")
+        print("starting IDDFS...")
         depth = self.depth
         while len(self.order)> 0:
 
@@ -283,6 +294,7 @@ class IterativeDeepening:
             else:
                 self.order = copy.deepcopy(older)
                 depth+=1
+            self.path = list()
         endtime = time.time()
         print("ended with time : " + str((endtime -starttime)))
 
@@ -354,8 +366,36 @@ class IterativeDeepening:
 #         RecurseTest(integer-1)
 #     print(integer)
 
-df = IterativeDeepening(start,goal)
-df.iterate()
+n = int(input("Enter the n value : "))
+file = open('random.txt', 'r')
+Lines = file.readlines()
+goals = list()
+
+for line in Lines:
+    line.strip()
+    x = line.split()
+    subgoal = list()
+    newgoal = list()
+    count = 1
+    for number in x:
+        subgoal.append(int(number))
+        count+=1
+        if count > n:
+            newgoal.append(subgoal)
+            count = 1
+            subgoal = list()
+    goals.append(newgoal)
+
+count = 0
+for goal in goals:
+    print("iteration " + str(count))
+    idf = IterativeDeepening(start,goal)
+    idf.iterate()
+
+    dfs = DFS(start,goal)
+    dfs.iterate()
+    print("\n")
+    count+=1
 
 #RecurseTest(integer=10)
 
