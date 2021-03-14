@@ -92,8 +92,15 @@ class DFS:
 
     def iterate(self):
         permlist = list()
+        allpaths = [[],[]]
         counting = 1
         starttime = time.time()
+        f = open("dfspath.txt", "a")
+        f2 = open("dfssol.txt", "a")
+        f.write("***************************************************************\n")
+        f.write("%s\n" %(str(self.start)))
+        f2.write("***************************************************************\n")
+        f2.write("%s\n" %(str(self.start)))
         print("starting DFS...")
         while len(self.order)> 0:
 
@@ -117,6 +124,20 @@ class DFS:
             self.solve(target,[rowind,colind],self.start,permlist,found)
             self.opened = list()
             self.closed = list()
+            sol = list()
+            for direction in self.path:
+                if direction not in sol:
+                    sol.append(direction)
+            solu = list()
+            for i in range(len(sol)-1,-1,-1): #direction in self.path:
+                if len(solu) != 0 and sol[i] not in solu:
+                    d = abs(solu[0][0] - sol[i][0]) +abs(solu[0][1] - sol[i][1])
+                    if d == 1:
+                        solu.insert(0,sol[i])
+                elif len(solu) == 0:
+                    solu.append(sol[i])
+            allpaths[0].append(self.path)
+            allpaths[1].append(solu)
             self.path = list()
             permlist = list()
             counting+=1
@@ -124,6 +145,17 @@ class DFS:
                 permlist.append(self.numericalDict[i])
         endtime = time.time()
         print("ended with time : " + str((endtime -starttime)))
+
+        count = 1
+        for paths in allpaths[0]:
+            f.write("%d : %s\n" %(count,str(paths)))
+            count+=1
+        count = 1
+        for sols in allpaths[1]:
+            f2.write("%d : %s\n" %(count,str(sols)))
+            count+=1
+        f.write("***************************************************************\n")
+        f2.write("***************************************************************\n")
 
 
 
@@ -189,6 +221,7 @@ class IterativeDeepening:
         self.depth = 0
         self.goal = goal
         self.path = []
+        self.solpath  = []
         self.order = []
         self.closed = []
         self.opened = []
@@ -238,6 +271,7 @@ class IterativeDeepening:
                             if self.numericalDict[currentNum] == move:
                                 isFound[0] = True
                                 self.start = newstart
+                                self.solpath.append(currentState)
                                 break
                             else:
                                 while forcount > 0:
@@ -252,13 +286,21 @@ class IterativeDeepening:
                         if forcount == len(movelist):
                             movelist = list()
                     else:
-                        movelist = list()     
+                        movelist = list()
+                        self.solpath.append(currentState)     
 
 
     def iterate(self):
         permlist = list()
+        allpaths = [[],[]]
         counting = 1
         starttime = time.time()
+        f = open("idpath.txt", "a")
+        f2 = open("idssol.txt", "a")
+        f.write("***************************************************************\n")
+        f.write("%s\n" %(str(self.start)))
+        f2.write("***************************************************************\n")
+        f2.write("%s\n" %(str(self.start)))
         older = copy.deepcopy(self.order)
         print("starting IDDFS...")
         depth = self.depth
@@ -291,12 +333,37 @@ class IterativeDeepening:
                     permlist.append(self.numericalDict[i])
                 depth = 0
                 older = copy.deepcopy(self.order)
+                sol = list()
+                for direction in self.path:
+                    if direction not in sol:
+                        sol.append(direction)
+                solu = list()
+                for i in range(len(sol)-1,-1,-1): #direction in self.path:
+                    if len(solu) != 0 and sol[i] not in solu:
+                        d = abs(solu[0][0] - sol[i][0]) +abs(solu[0][1] - sol[i][1])
+                        if d == 1:
+                            solu.insert(0,sol[i])
+                    elif len(solu) == 0:
+                        solu.append(sol[i])
+                allpaths[0].append(self.path)
+                allpaths[1].append(solu)
             else:
                 self.order = copy.deepcopy(older)
                 depth+=1
             self.path = list()
         endtime = time.time()
         print("ended with time : " + str((endtime -starttime)))
+
+        count = 1
+        for paths in allpaths[0]:
+            f.write("%d : %s\n" %(count,str(paths)))
+            count+=1
+        count = 1
+        for sols in allpaths[1]:
+            f2.write("%d : %s\n" %(count,str(sols)))
+            count+=1
+        f.write("***************************************************************\n")
+        f2.write("***************************************************************\n")
 
 
                
@@ -555,6 +622,15 @@ for line in Lines:
             count = 1
             subgoal = list()
     starts.append(newgoal)
+
+f = open("idpath.txt", "w")
+f.write("")
+f2 = open("idssol.txt", "w")
+f2.write("")
+f = open("dfspath.txt", "w")
+f.write("")
+f2 = open("dfssol.txt", "w")
+f2.write("")
 
 count = 0
 for start in starts:
