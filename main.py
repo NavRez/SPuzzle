@@ -456,8 +456,68 @@ class Aster:
         distance = abs(curpos[0] - goalpos[0]) + abs(curpos[1] - goalpos[1])
         return distance
 
+    def disorder(self,start,curpos,goalpos,currnum):
+        dist = 0
+        for i in range(curpos[0],-1,-1):
+            for j in range(len(start)-1,-1,-1):
+                if start[i][j] > currnum:
+                    if i == curpos[0]: 
+                        if j < curpos[1]:
+                            dist+=1
+                    else:
+                        dist+=1
+        return dist
+
+
     def heuristic1(self,currentNum,currentState,start,originalstate,isFound,mandist):
         newmandist = self.manhattan(currentState,self.numericalDict[currentNum])
+        if mandist >= newmandist:
+            if len(self.closed) == 0:
+                currentState = self.opened.pop(0) # the target state that you wish to reach
+                self.path.append(currentState)
+                self.closed = originalstate
+                self.closed.append(currentState)
+                movelist = self.categorize(currentState[0],currentState[1])
+                if self.numericalDict[currentNum] == currentState:
+                    isFound[0] = True
+            else:
+                movelist = self.categorize(currentState[0],currentState[1])
+        
+            while len(movelist) != 0:
+                forcount = 0
+                for move in movelist:
+                    if not isFound[0]:
+                        newstart = copy.deepcopy(start)
+                        if move in self.closed:
+                            forcount+=1
+                        else:
+                            self.swap(currentState,move,newstart)
+                            self.path.append(move)
+
+                            if self.numericalDict[currentNum] == move:
+                                isFound[0] = True
+                                self.start = newstart
+                                break
+                            else:
+                                while forcount > 0:
+                                    movelist.pop(0)
+                                    forcount-=1
+                                closed_node = movelist.pop(0)
+                                if closed_node not in self.closed:
+                                    self.closed.append(closed_node)
+                                self.heuristic1(currentNum,closed_node,newstart,originalstate,isFound,newmandist)
+                                if not isFound[0]:
+                                    self.path.append(currentState)
+                        if forcount == len(movelist):
+                            movelist = list()
+                    else:
+                        movelist = list()     
+        else:
+            if currentState not in self.closed:
+                self.closed.append(currentState)
+    
+    def finalsolve(self,currentNum,currentState,start,originalstate,isFound,mandist):
+        newmandist = self.disorder(start,currentState,self.numericalDict[currentNum],currentNum)
         if mandist >= newmandist:
             if len(self.closed) == 0:
                 currentState = self.opened.pop(0) # the target state that you wish to reach
@@ -507,8 +567,15 @@ class Aster:
 
     def phoenix(self): # heuristic 1 : the manhattan distance
         permlist = list()
+        allpaths = [[],[]]
         counting = 1
         starttime = time.time()
+        f = open("h1path.txt", "a")
+        f2 = open("h1sol.txt", "a")
+        f.write("***************************************************************\n")
+        f.write("%s\n" %(str(self.start)))
+        f2.write("***************************************************************\n")
+        f2.write("%s\n" %(str(self.start)))
         print("starting h1...")
         while len(self.order)> 0:
 
@@ -533,6 +600,20 @@ class Aster:
             self.heuristic1(target,[rowind,colind],self.start,permlist,found,currDist)
             self.opened = list()
             self.closed = list()
+            sol = list()
+            for direction in self.path:
+                if direction not in sol:
+                    sol.append(direction)
+            solu = list()
+            for i in range(len(sol)-1,-1,-1): #direction in self.path:
+                if len(solu) != 0 and sol[i] not in solu:
+                    d = abs(solu[0][0] - sol[i][0]) +abs(solu[0][1] - sol[i][1])
+                    if d == 1:
+                        solu.insert(0,sol[i])
+                elif len(solu) == 0:
+                    solu.append(sol[i])
+            allpaths[0].append(self.path)
+            allpaths[1].append(solu)
             self.path = list()
             permlist = list()
             counting+=1
@@ -541,6 +622,84 @@ class Aster:
         endtime = time.time()
         print("ended with time : " + str((endtime -starttime)))
 
+        count = 1
+        for paths in allpaths[0]:
+            f.write("%d : %s\n" %(count,str(paths)))
+            count+=1
+        count = 1
+        for sols in allpaths[1]:
+            f2.write("%d : %s\n" %(count,str(sols)))
+            count+=1
+        f.write("***************************************************************\n")
+        f2.write("***************************************************************\n")
+
+    def heuristic2 (self):
+        permlist = list()
+        allpaths = [[],[]]
+        counting = 1
+        starttime = time.time()
+        f = open("h2path.txt", "a")
+        f2 = open("h2sol.txt", "a")
+        f.write("***************************************************************\n")
+        f.write("%s\n" %(str(self.start)))
+        f2.write("***************************************************************\n")
+        f2.write("%s\n" %(str(self.start)))
+        print("starting h2...")
+        while len(self.order)> 0:
+
+            target = self.order.pop(0)
+
+            rowind = 0
+            colind = 0
+
+            found =False
+            for row in self.start:
+                for loc in row:
+                    if loc == target:
+                        rowind = self.start.index(row)
+                        colind = row.index(loc)
+                        found = True
+                        break
+                if found:
+                    break
+            found = [False]
+            self.opened.append([rowind,colind])
+            currDist = self.disorder(self.start,[rowind,colind],self.numericalDict[counting],target)
+            self.finalsolve(target,[rowind,colind],self.start,permlist,found,currDist)
+            self.opened = list()
+            self.closed = list()
+            sol = list()
+            for direction in self.path:
+                if direction not in sol:
+                    sol.append(direction)
+            solu = list()
+            for i in range(len(sol)-1,-1,-1): #direction in self.path:
+                if len(solu) != 0 and sol[i] not in solu:
+                    d = abs(solu[0][0] - sol[i][0]) +abs(solu[0][1] - sol[i][1])
+                    if d == 1:
+                        solu.insert(0,sol[i])
+                elif len(solu) == 0:
+                    solu.append(sol[i])
+            allpaths[0].append(self.path)
+            allpaths[1].append(solu)
+            self.path = list()
+            permlist = list()
+            counting+=1
+            for i in range(1,counting):
+                permlist.append(self.numericalDict[i])
+        endtime = time.time()
+        print("ended with time : " + str((endtime -starttime)))
+
+        count = 1
+        for paths in allpaths[0]:
+            f.write("%d : %s\n" %(count,str(paths)))
+            count+=1
+        count = 1
+        for sols in allpaths[1]:
+            f2.write("%d : %s\n" %(count,str(sols)))
+            count+=1
+        f.write("***************************************************************\n")
+        f2.write("***************************************************************\n")
 
     def categorize(self,rowind,colind):
         templist = list()
@@ -631,6 +790,14 @@ f = open("dfspath.txt", "w")
 f.write("")
 f2 = open("dfssol.txt", "w")
 f2.write("")
+f = open("h1path.txt", "w")
+f.write("")
+f2 = open("h1sol.txt", "w")
+f2.write("")
+f = open("h2path.txt", "w")
+f.write("")
+f2 = open("h2sol.txt", "w")
+f2.write("")
 
 count = 0
 for start in starts:
@@ -644,6 +811,9 @@ for start in starts:
 
     aster  = Aster(start,goal)
     aster.phoenix()
+
+    blaster  = Aster(start,goal)
+    blaster.heuristic2()
     print("\n")
 
 #RecurseTest(integer=10)
