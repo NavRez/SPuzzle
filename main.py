@@ -10,6 +10,19 @@ goal = (
     (4, 5, 6), 
     (7, 8, 9)
     )
+goal16 = (
+    (1, 2, 3, 4), 
+    (5, 6, 7, 8), 
+    (9, 10, 11, 12),
+    (13, 14, 15, 16)
+    )
+goal25 = (
+    (1, 2, 3, 4, 5), 
+    (6, 7, 8, 9, 10), 
+    (11, 12, 13, 14, 15),
+    (16, 17, 18, 19, 20),
+    (21, 22, 23, 24, 25)
+    )
 start = [
     [5, 3, 9], 
     [4, 2, 8], 
@@ -763,7 +776,7 @@ class Aster:
 
 
 n = int(input("Enter the n value : "))
-file = open('random.txt', 'r')
+file = open('24rand.txt', 'r')
 Lines = file.readlines()
 starts = list()
 
@@ -802,17 +815,17 @@ f2.write("")
 count = 0
 for start in starts:
     print("iteration " + str(count))
-    idf = IterativeDeepening(start,goal)
+    idf = IterativeDeepening(start,goal25)
     idf.iterate()
 
-    dfs = DFS(start,goal)
+    dfs = DFS(start,goal25)
     dfs.iterate()
     count+=1
 
-    aster  = Aster(start,goal)
+    aster  = Aster(start,goal25)
     aster.phoenix()
 
-    blaster  = Aster(start,goal)
+    blaster  = Aster(start,goal25)
     blaster.heuristic2()
     print("\n")
 
