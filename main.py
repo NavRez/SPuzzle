@@ -565,7 +565,7 @@ class Aster:
                                 closed_node = movelist.pop(0)
                                 if closed_node not in self.closed:
                                     self.closed.append(closed_node)
-                                self.heuristic1(currentNum,closed_node,newstart,originalstate,isFound,newmandist)
+                                self.finalsolve(currentNum,closed_node,newstart,originalstate,isFound,mandist)
                                 if not isFound[0]:
                                     self.path.append(currentState)
                         if forcount == len(movelist):
@@ -735,36 +735,36 @@ class Aster:
         elif rowind == len(start)-1:
 
             if colind == 0:
-                right = [rowind,colind+1]
                 up = [rowind-1,colind]
+                right = [rowind,colind+1]
                 templist.extend([right,up])
             elif colind == len(start)-1:
-                left = [rowind,colind-1]
                 up = [rowind-1,colind]
+                left = [rowind,colind-1]
                 templist.extend([left,up])
             else:
+                up = [rowind-1,colind]
                 left = [rowind,colind-1]
                 right = [rowind,colind+1]
-                up = [rowind-1,colind]
                 templist.extend([left,right,up])
 
         else:
             
             if colind == 0:
+               up = [rowind-1,colind]
                down = [rowind+1,colind]
                right = [rowind,colind+1]
-               up = [rowind-1,colind]
                templist.extend([down,right,up])
             elif colind == len(start)-1:
+               up = [rowind-1,colind]
                left = [rowind,colind-1] 
                down = [rowind+1,colind]
-               up = [rowind-1,colind]
                templist.extend([left,down,up])
             else:
+               up = [rowind-1,colind]
                left = [rowind,colind-1] 
                down = [rowind+1,colind]
                right = [rowind,colind+1]
-               up = [rowind-1,colind]
                templist.extend([left,down,right,up])
         
         return templist
@@ -776,7 +776,7 @@ class Aster:
 
 
 n = int(input("Enter the n value : "))
-file = open('24rand.txt', 'r')
+file = open('random.txt', 'r')
 Lines = file.readlines()
 starts = list()
 
@@ -815,17 +815,17 @@ f2.write("")
 count = 0
 for start in starts:
     print("iteration " + str(count))
-    idf = IterativeDeepening(start,goal25)
+    idf = IterativeDeepening(start,goal)
     idf.iterate()
 
-    dfs = DFS(start,goal25)
+    dfs = DFS(start,goal)
     dfs.iterate()
     count+=1
 
-    aster  = Aster(start,goal25)
+    aster  = Aster(start,goal)
     aster.phoenix()
 
-    blaster  = Aster(start,goal25)
+    blaster  = Aster(start,goal)
     blaster.heuristic2()
     print("\n")
 
