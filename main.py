@@ -776,6 +776,8 @@ class Aster:
 
 
 n = int(input("Enter the n value : "))
+#file = open('24rand.txt', 'r')
+#file = open('15rand.txt', 'r')
 file = open('random.txt', 'r')
 Lines = file.readlines()
 starts = list()
@@ -813,6 +815,8 @@ f2 = open("h2sol.txt", "w")
 f2.write("")
 
 count = 0
+#goal = goal16
+#goal = goal25
 for start in starts:
     print("iteration " + str(count))
     idf = IterativeDeepening(start,goal)
