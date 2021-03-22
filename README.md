@@ -4,7 +4,7 @@
 The primary objective of this project was to test out a modified version of the sliding tile puzzle also known as the 8-Puzzle into an S-puzzle, where every single block in an NxN matrix can be moved to an adjacent block. The goal being to sort an NxN matrix to an increasing order with 4 different algorithms : Depth-FIrst Search, Iterative Deepening, and two heuristic algorithms of our choice.
 
 ## Heuristics
-The first heuristic was the hamming distance, which would evaluate the distance between a block and its intended position in terms of rows and columns, with the sum of both distances being the hamming distance. The algorithm will then try to iterate through several moves as long as it decreases the hamming distance from its prior value (this is done in a recursive fashion).
+The first heuristic was the block distance, which would evaluate the distance between a block and its intended position in terms of rows and columns, with the sum of both distances being the block distance. The algorithm will then try to iterate through several moves as long as it decreases the block distance from its prior value (this is done in a recursive fashion).
 The second heuristic calculates the number of misplaced tiles from a block's position (ex: say you're given 54321 and need to sort 1, then there are 4 misplaced values because 1 is smaller than all of them), this algorithm will go a certain direction as long as the new distance is smaller than the original one.
 
 ## How to execute
