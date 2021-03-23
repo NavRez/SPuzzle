@@ -465,7 +465,7 @@ class Aster:
         start[orgstate[0]][orgstate[1]] = val2
         start[newstate[0]][newstate[1]] = val1
 
-    def manhattan(self,curpos,goalpos):
+    def blockdist(self,curpos,goalpos):
         distance = abs(curpos[0] - goalpos[0]) + abs(curpos[1] - goalpos[1])
         return distance
 
@@ -483,7 +483,7 @@ class Aster:
 
 
     def heuristic1(self,currentNum,currentState,start,originalstate,isFound,mandist):
-        newmandist = self.manhattan(currentState,self.numericalDict[currentNum])
+        newmandist = self.blockdist(currentState,self.numericalDict[currentNum])
         if mandist >= newmandist:
             if len(self.closed) == 0:
                 currentState = self.opened.pop(0) # the target state that you wish to reach
@@ -578,7 +578,7 @@ class Aster:
 
 
 
-    def phoenix(self): # heuristic 1 : the manhattan distance
+    def phoenix(self): # heuristic 1 : the blockdist distance
         permlist = list()
         allpaths = [[],[]]
         counting = 1
@@ -609,7 +609,7 @@ class Aster:
                     break
             found = [False]
             self.opened.append([rowind,colind])
-            currDist = self.manhattan([rowind,colind],self.numericalDict[counting])
+            currDist = self.blockdist([rowind,colind],self.numericalDict[counting])
             self.heuristic1(target,[rowind,colind],self.start,permlist,found,currDist)
             self.opened = list()
             self.closed = list()
