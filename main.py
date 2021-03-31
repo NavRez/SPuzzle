@@ -1,5 +1,6 @@
 import copy
 import time
+import threading
 # make a DFS algorithm for the S Puzzle
 # to do so, you will need to start out with the smallest index value and go to the greatest
 # prioritize left, down, right and up in that order : make sure these are functions
@@ -10,12 +11,16 @@ goal = (
     (4, 5, 6), 
     (7, 8, 9)
     )
+
+goalL =[[1,2,3],[4,5,6],[7,8,9]]
+
 goal16 = (
     (1, 2, 3, 4), 
     (5, 6, 7, 8), 
     (9, 10, 11, 12),
     (13, 14, 15, 16)
     )
+goal16L = [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]
 goal25 = (
     (1, 2, 3, 4, 5), 
     (6, 7, 8, 9, 10), 
@@ -23,6 +28,7 @@ goal25 = (
     (16, 17, 18, 19, 20),
     (21, 22, 23, 24, 25)
     )
+goal25L = [[1,2,3,4,5],[6,7,8,9,10],[11,12,13,14,15],[16,17,18,19,20],[21,22,23,24,25]]
 start = [
     [5, 3, 9], 
     [4, 2, 8], 
@@ -33,9 +39,12 @@ start = [
 
 class DFS:
 
-    def __init__(self, start, goal):
+    def __init__(self, start, goal,thegoal):
         self.start = start
+        self.begintime = None
+        self.timesup = False
         self.goal = goal
+        self.trueGoal = thegoal
         self.path = []
         self.order = []
         self.closed = []
@@ -95,6 +104,89 @@ class DFS:
                 else:
                     movelist = list()                    
             
+    def truesolve(self,currentNum,currentState,start,originalstate,isFound,opened,closed,totalsize,f):
+        
+        if currentState == None:
+            if currentNum == 1:
+                self.begintime = time.time()
+            rowind = 0
+            colind = 0
+            opened = list()
+            closed = list()
+
+            found =False
+            for row in start:
+                for loc in row:
+                    if loc == currentNum:
+                        rowind = start.index(row)
+                        colind = row.index(loc)
+                        found = True
+                        break
+                if found:
+                    break
+            opened.append([rowind,colind])
+            currentState = [rowind,colind]
+
+        if len(closed) == 0:
+            currentState = opened.pop(0) # the target state that you wish to reach
+            self.path.append(currentState)
+            closed.append(currentState)
+            movelist = self.categorize(currentState[0],currentState[1])
+            if self.trueGoal == start:
+                isFound = True
+        else:
+            movelist = self.categorize(currentState[0],currentState[1])
+    
+        while len(movelist) != 0:
+            forcount = 0
+            for move in movelist:
+                if not isFound:
+                    self.endtime = time.time()
+                    timeval = self.endtime - self.begintime
+                    if (timeval) <= 60:
+                        newstart = copy.deepcopy(start)
+                        if move in closed:
+                            forcount+=1
+                        else:
+                            nextnum = currentNum+1
+                            if nextnum <= totalsize:
+                                newopen = list()
+                                newclosed = list()
+                                self.truesolve(nextnum,None,newstart,None,isFound,newopen,newclosed,totalsize,f)
+                            if (self.endtime - self.begintime) >= 60:
+                                return
+                            self.swap(currentState,move,newstart)
+                            #if not self.timesup:
+                            f.write(str(newstart)+"\n")
+                            self.path.append(move)
+
+                            if self.trueGoal == newstart:
+                                isFound = True
+                                self.timesup = True
+                                self.start = newstart
+                                return
+                            else:
+                                while forcount > 0:
+                                    movelist.pop(0)
+                                    forcount-=1
+                                closed_node = movelist.pop(0)
+                                if closed_node not in closed:
+                                    closed.append(closed_node)
+                                self.truesolve(currentNum,closed_node,newstart,originalstate,isFound,opened,closed,totalsize,f)
+                                if not isFound:
+                                    self.path.append(currentState)
+                    else:
+                        movelist = list()
+                        self.timesup = True
+                        return
+                    if forcount == len(movelist):
+                        movelist = list()
+                else:
+                    movelist = list()       
+
+        if currentNum == 1 and isFound and len(movelist) == 0:
+            print("puzzle solved")                
+
 
     def swap(self,orgstate, newstate,start):
         val1 = start[orgstate[0]][orgstate[1]]
@@ -229,10 +321,14 @@ class DFS:
 
 class IterativeDeepening:
 
-    def __init__(self, start, goal):
+    def __init__(self, start, goal,thegoal):
         self.start = start
         self.depth = 0
         self.goal = goal
+        self.trueGoal = thegoal
+        self.begintime = None
+        self.endtime = None
+        self.begun = False
         self.path = []
         self.solpath  = []
         self.order = []
@@ -300,7 +396,102 @@ class IterativeDeepening:
                             movelist = list()
                     else:
                         movelist = list()
-                        self.solpath.append(currentState)     
+                        self.solpath.append(currentState)
+
+    def truefinf(self,currentNum,currentState,start,originalstate,isFound,depthLimit,opened,closed,totalsize,f):
+        if self.endtime == None:
+            if self.begintime == None:
+                self.begintime = time.time()
+                self.endtime = time.time()
+                while(self.endtime-self.begintime) <= 60:
+                    self.truesolve(currentNum,currentState,start,originalstate,isFound,depthLimit,opened,closed,totalsize,f)
+                    depthLimit+=1
+
+    def truesolve(self,currentNum,currentState,start,originalstate,isFound,depthLimit,opened,closed,totalsize,f):
+        if depthLimit >= 0:
+            depthLimit-=1
+
+            if currentState == None:
+                if self.begun == False:
+                    self.begintime = time.time()
+                    self.begun = True
+                rowind = 0
+                colind = 0
+                opened = list()
+                closed = list()
+
+                found =False
+                for row in start:
+                    for loc in row:
+                        if loc == currentNum:
+                            rowind = start.index(row)
+                            colind = row.index(loc)
+                            found = True
+                            break
+                    if found:
+                        break
+                opened.append([rowind,colind])
+                currentState = [rowind,colind]
+
+            if len(closed) == 0:
+                currentState = opened.pop(0) # the target state that you wish to reach
+                self.path.append(currentState)
+                closed.append(currentState)
+                movelist = self.categorize(currentState[0],currentState[1])
+                if self.trueGoal == start:
+                    isFound = True
+            else:
+                movelist = self.categorize(currentState[0],currentState[1])
+        
+            while len(movelist) != 0:
+                forcount = 0
+                for move in movelist:
+                    if not isFound:
+                        self.endtime = time.time()
+                        timeval = self.endtime - self.begintime
+                        if (timeval) <= 60:
+                            newstart = copy.deepcopy(start)
+                            if move in closed:
+                                forcount+=1
+                            else:
+                                nextnum = currentNum+1
+                                if nextnum <= totalsize:
+                                    newopen = list()
+                                    newclosed = list()
+                                    self.truesolve(nextnum,None,newstart,None,isFound,depthLimit,newopen,newclosed,totalsize,f)
+                                if (self.endtime - self.begintime) >= 60:
+                                    return
+                                self.swap(currentState,move,newstart)
+                            #    if not self.timesup:
+                                f.write(str(newstart) +"\n")
+                                self.path.append(move)
+
+                                if self.trueGoal == newstart:
+                                    isFound = True
+                                    self.timesup = True
+                                    self.start = newstart
+                                    return
+                                else:
+                                    while forcount > 0:
+                                        movelist.pop(0)
+                                        forcount-=1
+                                    closed_node = movelist.pop(0)
+                                    if closed_node not in closed:
+                                        closed.append(closed_node)
+                                    self.truesolve(currentNum,closed_node,newstart,None,isFound,depthLimit,opened,closed,totalsize,f)
+                                    if not isFound:
+                                        self.path.append(currentState)
+                        else:
+                            movelist = list()
+                            self.timesup = True
+                            return
+                        if forcount == len(movelist):
+                            movelist = list()
+                    else:
+                        movelist = list()        
+
+            if currentNum == 1 and isFound and len(movelist) == 0:
+                print("puzzle solved")    
 
 
     def iterate(self):
@@ -439,10 +630,11 @@ class IterativeDeepening:
 
 class Aster:
 
-    def __init__(self, start, goal):
+    def __init__(self, start, goal,thegoal):
         self.start = start
         self.depth = 0
         self.goal = goal
+        self.trueGoal = thegoal
         self.path = []
         self.order = []
         self.closed = []
@@ -813,23 +1005,46 @@ f = open("h2path.txt", "w")
 f.write("")
 f2 = open("h2sol.txt", "w")
 f2.write("")
+f = open("tidpath.txt", "w")
+f.write("")
+f = open("tdfspath.txt", "w")
+f.write("")
 
 count = 0
 #goal = goal16
 #goal = goal25
 for start in starts:
     print("iteration " + str(count))
-    idf = IterativeDeepening(start,goal)
+    op = list()
+    cl = list()
+    total = 0
+    for s in start:
+        total+=len(s)
+
+    tidf = IterativeDeepening(start,goal,goalL)
+    print("Attempting true IDDFS")
+    f = open("tidpath.txt", "a")
+    f.write("***************************************************************\n")
+    tidf.truefinf(1,None,start,None,False,1,op,cl,total,f)
+    f.write("***************************************************************\n")
+
+    tdfs = DFS(start,goal,goalL)
+    print("Attempting true DFS")
+    f = open("tdfspath.txt", "a")
+    f.write("***************************************************************\n")
+    tdfs.truesolve(1,None,start,None,False,op,cl,total,f)
+    f.write("***************************************************************\n")
+    idf = IterativeDeepening(start,goal,goalL)
     idf.iterate()
 
-    dfs = DFS(start,goal)
+    dfs = DFS(start,goal,goalL)
     dfs.iterate()
     count+=1
 
-    aster  = Aster(start,goal)
+    aster  = Aster(start,goal,goalL)
     aster.phoenix()
 
-    blaster  = Aster(start,goal)
+    blaster  = Aster(start,goal,goalL)
     blaster.heuristic2()
     print("\n")
 
